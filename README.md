@@ -30,10 +30,10 @@ To decide for the best lane the Path Planner applies a **cost functions** which 
 
 To increase safety **additional and independent checks** were included, verifying that collisions are avoided under all circumstances by verifying that ... 
 
-* ... no vehicles on target lane are very close
-* ... no vehicles on target lane are approaching from behind with a higher speed, before ...
-* ... and during lange change
-* If car keeps the lane, velocity is reduced to avoid collision with slower vehicles
+* ... none of the vehicles on target lane are very close,
+* ... none of the vehicles on target lane are approaching from behind with a higher speed, before ...
+* ... and during lange change.
+* If car keeps lane, velocity is reduced to avoid collision with slower vehicles.
 
 ![Screenshot of simulation result](Screenshot%20from%202017-09-01%2023-28-03.png?raw=true "Screenshot of simulation result")
 
