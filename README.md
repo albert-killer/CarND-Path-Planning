@@ -20,7 +20,7 @@ for(int i = 0; i < sensor_fusion.size(); i++){
    ...
 ```
 The decision to change to another lane is made by a **transition function** which uses position and velocity of sorounding cars relative to the ego car’s position in order to return the next best state (in this case lane) to transit to. The hereby implemented simple *Finite State Machine* (FSM) ignores useful states like “preparing lane change”. For the purpose of this simulation additional safety checks do the trick. 
-To decide for the best lane the Path Planner applies a **cost functions** which evaluates following basic situations:
+To decide for the best lane the Path Planner applies a **cost functions** which evaluates the following basic situations:
 
 1. Car ahead and far away
 2. Car ahead but too close
