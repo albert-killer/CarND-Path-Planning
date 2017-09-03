@@ -383,6 +383,7 @@ int main() {
           	double vy;
           	double check_speed;
           	double check_car_s;
+          	double diff_speed;
           	int selected_lane;
 
             if(prev_size > 0){
@@ -399,21 +400,40 @@ int main() {
           	    vy = sensor_fusion[i][4];
                 check_car_s = sensor_fusion[i][5];
                 check_speed = sqrt(vx*vx+vy*vy);
+                diff_speed = car_speed-check_speed; // positive when ego vehicle is faster
 
           	    // Using previous points and velocity to predict position in the future
           	    check_car_s += ((double)prev_size*0.02*check_speed);
-          	    // Check if car is ahead (>s value) and gap is VERY small
-                if((check_car_s > car_s) && ((check_car_s-car_s) < 25)){
-                  // If car in front is too close focus on increasing distance before considering lane change
-                  slow_down = true;
-                  // Save speed of slower car in the front of ego vehicle for later velocity adjustments
-                  sync_speed = check_speed;
+
+          	    // Check if car is ahead (>s value) and gap is VERY small relative to own speed
+          	    if(check_car_s > car_s){
+                  // Check if car ahead is a lot slower
+          	      if(diff_speed > 5){
+                    if(check_car_s-car_s < 40){
+                      // If car in front is VERY close focus on increasing distance before considering lane change
+                      slow_down = true;
+                      // Save speed of slower car in the front of ego vehicle for later velocity adjustments
+                      sync_speed = check_speed;
+                    }
+                    else if(check_car_s-car_s < 50){
+                      // If car in front is still close, trigger changing lanes
+                      change_lane = true;
+                    }
+                  }
+          	      // Check if both velocities are similar but ego car is still catching up
+                  else if ((diff_speed <= 5) && (diff_speed > 0)){
+                    if(check_car_s-car_s < 30){
+                      // If car in front is VERY close focus on increasing distance before considering lane change
+                      slow_down = true;
+                      // Save speed of slower car in the front of ego vehicle for later velocity adjustments
+                      sync_speed = check_speed;
+                    }
+                    else if(check_car_s-car_s < 40){
+                      // If car in front is still close, trigger changing lanes
+                      change_lane = true;
+                    }
+                  }
                 }
-                // Check if car is ahead (>s value) and too close
-          	    else if((check_car_s > car_s) && ((check_car_s-car_s) < 40)){
-          	      // Trigger changing lanes
-          	      change_lane = true;
-          	    }
           	  }
           	}
 
@@ -431,16 +451,17 @@ int main() {
                   vy = sensor_fusion[i][4];
                   check_car_s = sensor_fusion[i][5];
                   check_speed = sqrt(vx*vx+vy*vy);
+                  diff_speed = car_speed-check_speed; // positive when ego vehicle is faster
 
                   // Using previous points and velocity to predict position in the future
                   check_car_s += ((double)prev_size*0.02*check_speed);
                   // Car is closer than 20 m
-                  if(fabs(check_car_s-car_s) < 20){
+                  if(fabs(check_car_s-car_s) <= 30){
                     // Stay in old lane, new lane is not safe!
                     selected_lane = lane;
                   }
-                  // Car is 20 to 100 m close and faster!
-                  if((fabs(check_car_s-car_s) > 20) && (check_speed > car_speed) && (fabs(check_car_s-car_s) < 100)){
+                  // Car is 30 to 100 m close and faster!
+                  if((fabs(check_car_s-car_s) > 30) && (diff_speed < -5) && (fabs(check_car_s-car_s) < 100)){
                     // Stay in old lane, avoid annoying faster cars on the Autobahn!
                     selected_lane = lane;
                   }
@@ -462,11 +483,12 @@ int main() {
                   vy = sensor_fusion[i][4];
                   check_car_s = sensor_fusion[i][5];
                   check_speed = sqrt(vx*vx+vy*vy);
+                  diff_speed = car_speed-check_speed; // positive when ego vehicle is faster
 
                   // Using previous points and velocity to predict position in the future
                   check_car_s += ((double)prev_size*0.02*check_speed);
                   // Car is less than 50 m behind ego vehicle and faster
-                  if(((check_car_s-car_s) < -50) && (check_speed > car_speed)){
+                  if(((check_car_s-car_s) < -50) && (diff_speed < -2)){
                     // Go back to old lane to avoid collision
                     lane = old_lane;
                   }
@@ -485,13 +507,13 @@ int main() {
           	if(slow_down){
           	  // Check if ego vehicle is faster than slower car ahead
           	  if (ref_vel > sync_speed){
-                // Slow down approx. 5 m/s^2
-          	    ref_vel -= 0.224;
+                // Slow down max. 5 m/s^2 relative to speed difference to car ahead
+          	    ref_vel -= 0.224*(1-(sync_speed/ref_vel));
           	  }
           	  // Check if car is very close but ego vehicle is slower (i.e. after lane change)
           	  else if (ref_vel < sync_speed){
-          	    // Speed up slowly
-          	    ref_vel += 0.1;
+          	    // Speed up max. 5 m/s^2 relative to speed difference to car ahead
+          	    ref_vel += 0.224*(1-(ref_vel/sync_speed));
           	  }
           	}
           	// Check if there is no car ahead very close and ego vehicle is slower than reference velocity
@@ -543,7 +565,7 @@ int main() {
           	// Add evenly 30 m spaced points ahead of the starting reference (Frenet)
           	vector<double> next_anchor_point_0 = getXY(car_s+30, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
             vector<double> next_anchor_point_1 = getXY(car_s+60, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-            vector<double> next_anchor_point_2 = getXY(car_s+90, (2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            vector<double> next_anchor_point_2 = getXY(car_s+90, (1.8+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
 
             ptsx.push_back(next_anchor_point_0[0]);
             ptsx.push_back(next_anchor_point_1[0]);
