@@ -37,10 +37,7 @@ To increase safety **additional and independent checks** were included to make s
 
 ![Screenshot of simulation result](Screenshot%20from%202017-09-01%2023-28-03.png?raw=true "Screenshot of simulation result")
 
-Check out the videos of two example runs with the Udacity Term3-Simulator, each approx. 5 miles, to see the Path Planner in action:
-
-* 1st Example Run: coming soon
-* 2nd Example Run: coming soon
+Check out this video of a 5 miles test run using the above presented implementation with the Udacity Term3-Simulator, to see the Path Planner in action: https://youtu.be/5toY0Nf8DLo
 
 ## Discussion
 As a result the implemented Path Planner is able to drive the car safely along the highway for several miles around the simulated track. 
